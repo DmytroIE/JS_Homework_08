@@ -47,7 +47,6 @@ body {
   margin-right: 0px;
 } 
 
-}
 .gallery__preview-img: hover{
   transform: scale(1.08, 1.08);
 }
