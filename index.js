@@ -1,5 +1,6 @@
 /* eslint linebreak-style: ['error', 'windows'] */
 
+
 const galleryItems = [
   {
     preview: "img/preview-1.jpg",
@@ -50,17 +51,24 @@ class PictureGallery {
     previewContainer.className = "gallery__preview-container";
     parentNode.appendChild(previewContainer);
 
-    const previewLine = document.createElement("div");
-    previewLine.className = "gallery__preview-line";
-    previewContainer.appendChild(previewLine);
-
-    items.forEach((item) => {
+    //const previewLine = document.createElement("div");
+    //previewLine.className = "gallery__preview-line";
+    //previewContainer.appendChild(previewLine);
+    const previewImages = [];
+    items.forEach((item, idx) => {
       const img = document.createElement("img");
       img.setAttribute("src", item.preview);
       img.setAttribute("alt", item.alt);
       img.setAttribute("data-fullview", item.fullview);
       img.className = "gallery__preview-img";
-      previewLine.appendChild(img);
+      if (idx===0){ // защита от дурака
+        img.style.marginLeft = '0';
+      }
+      if (idx===items.length-1){ // и это тоже защита от дурака
+        img.style.marginRight = '0';
+      }
+      previewContainer.appendChild(img);
+      previewImages[idx] = img; // делаем масив ссылок на превью-картинки, чтобы было удобно с ним работать
     });
 
     const prevBtn = document.createElement("div");
@@ -71,60 +79,87 @@ class PictureGallery {
     nextBtn.className = "gallery__button gallery__button--next";
     previewContainer.appendChild(nextBtn);
 
-    this.parentNode = parentNode;
     // --------------------------------------Обработчики событий----------------------------
     function onClickPrev(e) {
       if (!e.target.matches(".gallery__button--prev")) {
         return;
       }
-      const previewLineCompStyle = getComputedStyle(previewLine);
-      let previewLineMarginLeft = previewLineCompStyle.marginLeft;
-      previewLineMarginLeft = parseInt(previewLineMarginLeft) + 100;
-      if (previewLineMarginLeft > 0) previewLineMarginLeft = 0;
-      previewLine.style.marginLeft = previewLineMarginLeft + "px";
+      // работаем с margin 1й превью -картинки
+      const previewFirstImageCompStyle = getComputedStyle(previewImages[0]);
+      let previewFirstImageMarginLeft = parseFloat(previewFirstImageCompStyle.marginLeft);
+      previewFirstImageMarginLeft = previewFirstImageMarginLeft + 100;
+      if (previewFirstImageMarginLeft > 0) previewFirstImageMarginLeft = 0;
+      previewImages[0].style.marginLeft = previewFirstImageMarginLeft + "px";
     }
 
     prevBtn.addEventListener("click", onClickPrev.bind(this));
 
-    // --------------
+    // ---------------------------------------------------------------------------------------------------------------------
+    
     function onClickNext(e) {
       if (!e.target.matches(".gallery__button--next")) {
         return;
       }
-      const previewLineCompStyle = getComputedStyle(previewLine);
-      let previewLineMarginLeft = previewLineCompStyle.marginLeft;
-      previewLineMarginLeft = parseInt(previewLineMarginLeft) - 100;
+      const previewFirstImageCompStyle = getComputedStyle(previewImages[0]);
+      //let previewFirstImageMarginLeft = parseFloat(previewFirstImageCompStyle.marginLeft);
+
       // вычисление длины превью-элемента
-      let previewLineWidth = 0;
-      // вначале ширИны всех изображений с учетом боковых margin и padding
-      const previewImages = this.parentNode.querySelectorAll('.gallery__preview-img');
       
-      previewImages.forEach((item) => {
+      // вначале ширИны всех изображений с учетом боковых margin
+      let previewLineWidth = 0;
+      previewImages.forEach((item, idx) => {
         const previewImageStyle = getComputedStyle(item);
-        previewLineWidth += item.offsetWidth + parseInt(previewImageStyle.marginLeft) + parseInt(previewImageStyle.marginRight)
-        + parseInt(previewImageStyle.paddingLeft) + parseInt(previewImageStyle.paddingRight);
+        if (idx!==0){
+          previewLineWidth +=parseFloat(previewImageStyle.marginLeft); // не считаем отрицательный margin первой картинки
+        }
+        previewLineWidth += item.offsetWidth + parseFloat(previewImageStyle.marginRight);
       });
-      // к этой длине еще нужно добавить паддинги элемента previewLine
 
-      previewLineWidth += parseInt(previewLineCompStyle.paddingLeft) + parseInt(previewLineCompStyle.paddingRight)
-      // вычисление длины превью-контейнера
-      const previewContainerWidth = this.parentNode.querySelector('.gallery__preview-container').offsetWidth;
-      // сравнение - чтобы line далеко влево не убежал, 10px - запас на всякий случай
-      if (previewLineMarginLeft < - previewLineWidth + previewContainerWidth) {
-        previewLineMarginLeft = - previewLineWidth + previewContainerWidth;
+      const previewContainerCompStyle = getComputedStyle(previewContainer);
+      // если полоса с превью-картинками помещается в контентном поле контейнера по ширине, то ничего не делаем
+      if (previewLineWidth < previewContainer.clientWidth - parseFloat(previewContainerCompStyle.paddingLeft) - parseFloat(previewContainerCompStyle.paddingRight)){
+        return;
       }
-
-      previewLine.style.marginLeft = previewLineMarginLeft + 'px';
+      // иначе
+ 
+      if (previewImages[previewImages.length-1].offsetLeft - 100 < previewContainer.clientWidth - previewImages[previewImages.length-1].offsetWidth - parseFloat(previewContainerCompStyle.paddingRight)){
+        previewImages[0].style.marginLeft =
+        parseFloat(previewFirstImageCompStyle.marginLeft) 
+        - (previewImages[previewImages.length-1].offsetLeft + previewImages[previewImages.length-1].offsetWidth - previewContainer.clientWidth) 
+        - parseFloat(previewContainerCompStyle.paddingRight) 
+        + 'px';}
+      else{
+        previewImages[0].style.marginLeft = parseFloat(previewImages[0].style.marginLeft) - 100 + 'px';
+      }
     }
 
     nextBtn.addEventListener('click', onClickNext.bind(this));
-    // ------------
+
+    // -------------------------------------------------------------------------------------------------------------------
 
     function selectPicture(e){
       if (!e.target.matches('.gallery__preview-img')) {
         return;
       }
       fullImage.setAttribute("src", `${e.target.dataset.fullview}`);
+      // если картинка частично скрыта, то при клике ее нужно показать
+      const previewFirstImageCompStyle = getComputedStyle(previewImages[0]);
+      const previewContainerCompStyle = getComputedStyle(previewContainer);
+      // картинка слева
+      if (e.target.offsetLeft < parseFloat(previewContainerCompStyle.paddingLeft) /*&& e.target.offsetLeft > -e.target.offsetWidth*/){ // если картинка "застряла" слева
+        previewImages[0].style.marginLeft = parseFloat(previewFirstImageCompStyle.marginLeft) + Math.abs(e.target.offsetLeft) 
+        + parseFloat(previewContainerCompStyle.paddingLeft) + 'px'; // учитывается только левый padding, border не учитывается
+      }
+      // картинка справа
+
+      if(e.target.offsetLeft > previewContainer.clientWidth - e.target.offsetWidth - parseFloat(previewContainerCompStyle.paddingRight)){
+        previewImages[0].style.marginLeft = 
+        parseFloat(previewFirstImageCompStyle.marginLeft) 
+        - (e.target.offsetLeft + e.target.offsetWidth - previewContainer.clientWidth) 
+        - parseFloat(previewContainerCompStyle.paddingRight) 
+        + 'px';
+      
+      }
     }
     previewContainer.addEventListener('click', selectPicture.bind(this));
 
