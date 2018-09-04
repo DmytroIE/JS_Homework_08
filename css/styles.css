@@ -13,11 +13,10 @@ body {
   padding: 20px;
 }
 .gallery__fullview-container{
-  box-sizing: border-box;
   margin-bottom: 20px;
   border: 1px solid #aaa;
-
   box-shadow: 0 0 5px rgba(112, 112, 112, 0.5);
+  min-height: 200px;
 }
 
 .gallery__fullimage{
@@ -26,7 +25,6 @@ body {
   height: auto;
 }
 .gallery__preview-container{
-  box-sizing: border-box;
   position: relative;
   overflow-x: hidden;
   border: 10px solid #aaa;
@@ -34,21 +32,22 @@ body {
   box-shadow: 0 0 5px rgba(112, 112, 112, 0.5);  
   display: flex;
   padding: 5px 5px 5px 5px;
+
 }
 
 .gallery__preview-img{
   margin-right: 10px;  
-  transition: transform 0.2s ease 0.2s, margin 0.5s;
+  transition: transform 0.2s, margin 0.5s;
   display: block;
   height: 100px;
   width: auto;
 }
-.gallery__preview-img: last-child {
+.gallery__preview-img:last-child {
   margin-right: 0px;
 } 
 
-.gallery__preview-img: hover{
-  transform: scale(1.08, 1.08);
+.gallery__preview-img:hover{
+  transform: scale(1.07, 1.07);
 }
 
 .gallery__button {

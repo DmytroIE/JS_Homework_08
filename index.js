@@ -33,14 +33,14 @@ const galleryItems = [
     alt: 'alt text 6',
   },
   {
-    preview: 'img/preview-5.jpg',
-    fullview: 'img/fullview-5.jpg',
-    alt: 'alt text 5',
+    preview: 'img/preview-7.jpg',
+    fullview: 'img/fullview-7.jpg',
+    alt: 'alt text 7',
   },
   {
-    preview: 'img/preview-6.jpg',
-    fullview: 'img/fullview-6.jpg',
-    alt: 'alt text 6',
+    preview: 'img/preview-8.jpg',
+    fullview: 'img/fullview-8.jpg',
+    alt: 'alt text 8',
   },
 ];
 
@@ -87,6 +87,8 @@ class PictureGallery {
     previewContainer.appendChild(nextBtn);
 
     // --------------------------------------Обработчики событий----------------------------
+    this._step = 50;
+
     function onClickPrev(e) {
       if (!e.target.matches('.gallery__button--prev')) {
         return;
@@ -95,11 +97,11 @@ class PictureGallery {
       const previewFirstImageCompStyle = getComputedStyle(previewImages[0]);
       const previewFirstImageMarginLeft = parseFloat(previewFirstImageCompStyle.marginLeft);
 
-      if (previewFirstImageMarginLeft + 100 > 0) {
+      if (previewFirstImageMarginLeft + this._step > 0) {
         previewImages[0].style.marginLeft = '0';
       }
       else {
-        previewImages[0].style.marginLeft = previewFirstImageMarginLeft + 100 + 'px';
+        previewImages[0].style.marginLeft = previewFirstImageMarginLeft + this._step + 'px';
       }
     }
 
@@ -126,7 +128,7 @@ class PictureGallery {
         }
         acc += curr.offsetWidth; 
         if (idx !== previewImages.length-1) {
-          acc += parseFloat(previewImageStyle.marginRight); // не считаем последний правый марджин (его не должнобыть, но вдруг он есть)
+          acc += parseFloat(previewImageStyle.marginRight); // не считаем последний правый марджин (его не должно быть, но вдруг он есть)
         }
         return acc;
       }, 0);
@@ -139,10 +141,10 @@ class PictureGallery {
       }
       // иначе
       const lowestMarginLeft = contentWidth - previewLineWidth; // самая маленькая (большая по модулю) left margin, которая вообще возможна
-      if (previewFirstImageMarginLeft - 100 < lowestMarginLeft) {
+      if (previewFirstImageMarginLeft - this._step < lowestMarginLeft) {
         previewImages[0].style.marginLeft = lowestMarginLeft + 'px';}
-      else{
-        previewImages[0].style.marginLeft = previewFirstImageMarginLeft - 100 + 'px';
+      else {
+        previewImages[0].style.marginLeft = previewFirstImageMarginLeft - this._step + 'px';
       }
     }
 
@@ -187,9 +189,23 @@ class PictureGallery {
       }
     }
     previewContainer.addEventListener('click', selectPicture.bind(this));
+  }
+  get step() {
+    return this._step;
+  }
 
+  set step(value) {
+    this._step = value;
+    if (this._step < 20){
+      this._step = 20;
+    }
+    const maxStep = Math.floor(document.querySelector('.gallery__preview-container').clientWidth / 3);
+    if (this._step > maxStep) {
+      this._step = maxStep;
+    }
   }
 }
 
 const container = document.querySelector('#gallery');
 const gallery = new PictureGallery(galleryItems, container, 1);
+gallery.step = 100;
